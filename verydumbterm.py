@@ -2,36 +2,37 @@
 import serial
 from serial.serialutil import SerialException
 
-#
-# magic code to read key-at-a-time
 import sys 
 import select 
 import tty 
 import termios
+
 def key_available():
-	return select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], [])
-old_settings = termios.tcgetattr(sys.stdin)
-tty.setcbreak(sys.stdin.fileno())
+    return select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], [])
 
 
-#
-# code to open the port as a serial interface
 serial_port = serial.Serial(
     timeout=0.1,
     writeTimeout=2,
     port="/dev/ttyACM0"
 )
+if not serial_port.is_open:
+    print("Exiting.  Could not open serial port:",serial_port.port)
+    exit
 
-if serial_port.is_open:
+old_tty_settings = termios.tcgetattr(sys.stdin)
+old_port_attr = termios.tcgetattr(serial_port.fileno())
+new_port_attr = termios.tcgetattr(serial_port.fileno())
+new_port_attr[3] = new_port_attr[3] & ~termios.ECHO 
+termios.tcdrain(serial_port.fileno())
+termios.tcsetattr(serial_port.fileno(), termios.TCSADRAIN, new_port_attr)
+
+
+try:
+    tty.setcbreak(sys.stdin.fileno())
+
     serial_port.flushInput()
     serial_port.flushOutput()
-
-#
-# loop forever.  only allow the serial port the "timeout" value to respond
-# after dealing with result from the serial port
-# if there's a character, read it, print it, send it.
-#
-try:
     while serial_port.is_open:
         data_rx_bytes = serial_port.readline()
         data_rx_length = len(data_rx_bytes)
@@ -44,5 +45,8 @@ try:
             sys.stdout.write(c)
 except SerialException:
     print("Serial Port closed. terminate.")
+except KeyboardInterrupt:
+    print("Break received,  Serial Port closing.")
 finally:
-    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+    termios.tcsetattr(serial_port.fileno(), termios.TCSADRAIN, old_port_attr)
+    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_tty_settings)
