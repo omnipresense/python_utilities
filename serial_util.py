@@ -19,16 +19,23 @@ def main():
     parser.add_option("-p", "--port", dest="port_name",
                       default="/dev/ttyACM0",
                       help="read data from PORTNAME")
+    parser.add_option("-b", "--baud", dest="baudrate",
+                      default="57600",
+                      help="baud rate on serial port")
     parser.add_option("-t", "--timeToLive",
                        default=0,
                        dest="time_to_live")
     (options, args) = parser.parse_args()
     time_to_live_val = float(options.time_to_live)
 
+    baudrate_int = int(options.baudrate)
+    if baudrate_int <= 0:
+        baudrate_int = 57600
     serial_port = serial.Serial(
         timeout=0.1,
         writeTimeout=0.2,
-        port=options.port_name
+        port=options.port_name,
+        baudrate=baudrate_int
     )
     if not serial_port.is_open:
         print("Exiting.  Could not open serial port:",serial_port.port)
