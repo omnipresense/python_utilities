@@ -33,8 +33,18 @@ def main():
     parser.add_option("-t", "--timeToLive",
                       default=0,
                       dest="time_to_live")
+    parser.add_option("-i", "--interval_time",
+                      default=0,
+                      dest="interval_time")
+    parser.add_option("-s", "--interval_send",
+                      default="",
+                      dest="interval_send")
     (options, args) = parser.parse_args()
     time_to_live_val = float(options.time_to_live)
+    interval_time_val = float(options.interval_time)
+    interval_send = options.interval_send
+    last_interval_time = time() # don't send interval str at boot, wait at least...
+
 
     baudrate_int = int(options.baudrate)
     if baudrate_int <= 0:
@@ -94,6 +104,10 @@ def main():
                 if (time() - start_time) > time_to_live_val:
                     print("Exiting.  Time to live elapsed")
                     sys.exit(0)
+            if interval_time_val > 0:
+                if (time() - last_interval_time) > interval_time_val:
+                    serial_port.write(interval_send.encode('utf-8'))
+                    last_interval_time = time()
 
     except SerialException:
         print("Serial Port closed. terminate.")
