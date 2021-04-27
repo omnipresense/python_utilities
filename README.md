@@ -25,3 +25,19 @@ Options:
 Requirements:
 Python 3, pyserial.   ("pip install pyserial") 
 
+## Alternatives
+
+If this does not meet your needs, then perhaps the built in pyserial terminal will.  See [the documentation](https://pyserial.readthedocs.io/en/latest/tools.html). 
+```
+python -m serial.tools.miniterm
+```
+
+
+Alternatively, take a look at other community resources like:   
+https://github.com/dhylands/usb-ser-mon/tree/master/usb_ser_mon
+
+Of course, C-based programs are also useful.  
+For linux, screen and minicom have proven themselves useful.  
+On Windows, [TeraTerm](https://osdn.net/projects/ttssh2/releases/) is great for interaction and [yat](https://sourceforge.net/projects/y-a-terminal/) is great for simplifying testing.
+
+
